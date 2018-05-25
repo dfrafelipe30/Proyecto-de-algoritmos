@@ -569,6 +569,7 @@ int jugar(maze &meow){
         auxy=posy;
         int cont=solve(meow,0),movi=0;
         copiabonita(copia,meow.tamx,meow.tamy,posx,posy);
+        cout<<"se puede solucionar en "<<cont<<" pasos"<<endl;
         while(movi<=cont){
             cin>>order;
             switch(order){
@@ -599,6 +600,7 @@ int jugar(maze &meow){
                  movi++;
             }    
             copiabonita(copia,meow.tamx,meow.tamy,posx,posy);
+            cout<<"lleva "<<movi<<" pasos"<<endl;
             mostrar(llaves);
             if(copia[posx][posy]==-2){
                  cout<<"llego al final"<<endl;
@@ -714,12 +716,36 @@ maze lab2;
     
 int main() {
 	char op;
+        maze temp=labe1();
+        cout<<"labe1"<<endl;
+        bonita(temp,-1,-1);
+        solve(temp,1);
+        
+        /*cout<<"labe2"<<endl;
+        temp=labe2();
+        bonita(temp,-1,-1);
+        solve(temp,1);
+
+        cout<<"labe3"<<endl;
+        temp=labe3();
+        bonita(temp,-1,-1);
+        solve(temp,1);
+         
+        cout<<"labe4"<<endl;
+        temp=labe4();
+        bonita(temp,-1,-1);
+        solve(temp,1);
+
+       
+        maze labe=armar();
+        solve(labe,1);
+
+
 	maze meow=armar();
         formatopre(meow);
 	maze temp = labe3();
-        bonita(temp,-1,-1);
+        bonita(temp,-1,-1);*/
         //cin>>op;
         //jugar(temp);
-        solve(temp,1);
 	return 0;
 }
