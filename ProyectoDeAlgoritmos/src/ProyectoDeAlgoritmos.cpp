@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include <stdio.h>
-#include <conio.h>
+//#include <conio.h>
 
 using namespace std;
 
@@ -28,8 +28,8 @@ struct node{
 // nodos del arbol de matricez
 struct maze{
 	int **matriz;//la matriz(puntero de punteros)
-	int tamx;//tamaño en x de la matriz
-	int tamy;//tamaño en y de la matriz
+	int tamx;//tamaï¿½o en x de la matriz
+	int tamy;//tamaï¿½o en y de la matriz
 	int move;//el numero que toca poner al rodear otro
 	node<punto> *actual;//lista de posiciones por rodear
 	node<punto> *sig;//lista de posiciones en las que se agrega un numero
@@ -170,6 +170,8 @@ void swap(node<dato> * &p,node<dato> * &p2){
 
 //mostrar la lista de llaves recojidas
 void mostrar(node<int> * & p){
+        if(p==NULL)
+        return;
 	node<int> *ite=p;
 	cout<<"llaves recojidas: "<<endl;
 	while(ite!=NULL){
@@ -193,9 +195,9 @@ maze armar(){
 	cin>>meow.tamx;
 	cout<<"digite tamanio en y"<<endl;
 	cin>>meow.tamy;
-	meow.matriz=new int * [meow.tamx];// hacer que matriz apunte a un arreglo de punteros de tamaño cantidad de columnas
+	meow.matriz=new int * [meow.tamx];// hacer que matriz apunte a un arreglo de punteros de tamaï¿½o cantidad de columnas
 	for(i=0;i<meow.tamx;i++){
-		meow.matriz[i]=new int [meow.tamy];//hacer que cada puntero del arreglo apunto a un arreglo de enteros de tamaño cantidad de filas:
+		meow.matriz[i]=new int [meow.tamy];//hacer que cada puntero del arreglo apunto a un arreglo de enteros de tamaï¿½o cantidad de filas:
 		for(j=0;j<meow.tamy;j++){
 			meow.matriz[i][j]=0;//rellenar de 0
 		}
@@ -239,7 +241,7 @@ void crearhija(maze &meow,int key){
 	(*hija).actual=NULL;//se inicial la lista de actual vacia
 	(*hija).sig=NULL;//se inicia la lista de siguientes vacia
 	(*hija).move=2;//se define el numero que se pone al rodear
-	(*hija).tamx=meow.tamx;//se igualan los tamaños
+	(*hija).tamx=meow.tamx;//se igualan los tamaï¿½os
 	(*hija).tamy=meow.tamy;
 	(*hija).matriz=new int* [meow.tamx];//se crea la matriz hija
 	for(int i=0;i<meow.tamx;i++){
@@ -288,17 +290,17 @@ punto marcar(maze &meow,int rx,int ry){//rxy rx son la posicion desde la que se 
 }
 
 void juntarsolucion(maze &meow,node<maze*> * &solu,int rx,int ry){//rx,ry es la poscion de la meta
-	cout<<"juntar"<<endl;
+	//cout<<"juntar"<<endl;
 	push(solu,&meow);
 	punto chosen;
 	chosen=marcar(meow,rx,ry);
-	fea(meow);
-	cout<<endl;
+	//fea(meow);
+	//cout<<endl;
 	maze *ite=meow.padre;
 	while(ite!=NULL){
 		push(solu,ite);//se agregan las matricez que marcan conforman el camino correcto
 		chosen=marcar(*ite,chosen.x,chosen.y);//se marca el camino el camino en la matriz y se prepara para marcar el de la siguiente
-		fea(*ite);
+		//fea(*ite);
 		//cout<<endl;
 		ite=(*ite).padre;
 	}
@@ -421,18 +423,63 @@ void animar(node<int> * & llaves,int **copia,maze &meow){
 	copiabonita(copia,meow.tamx,meow.tamy,i,j);
 }
 
-void caminar(int **copia,node<maze*> * &solu){//animar cada una de las matrices solucion
+void caminar(int **copia,node<maze*> * &solu,int &contpasos, int modalidad){//animar cada una de las matrices solucion
 	node<maze*> *ite=solu;
 	node<int> *llaves=NULL;
 	while(ite!=NULL){
+                if(modalidad==1)
 		animar(llaves,copia,*((*ite).val));
 		ite=(*ite).next;
+                contpasos++;
 	}
 }
 
 void clear(maze & meow){
-
+     for(int i=0;i<meow.tamx;i++){
+         delete[] meow.matriz[i];
+     }
+     delete meow.matriz;
+     while(meow.hijas!=NULL){
+         clear(*((*(meow.hijas)).val));
+         pop(meow.hijas);
+     }
+     while(meow.actual!=NULL){
+         pop(meow.actual);
+     }
+     while(meow.sig!=NULL){
+         pop(meow.sig);
+     }
+     delete &meow;
 }
+
+
+maze deepcopy(maze &para){
+     maze copia;
+     copia.matriz=new int * [para.tamx];
+     for(int i=0;i<para.tamx;i++){
+         copia.matriz[i]=new int [para.tamy];
+         for(int j=0;j<para.tamy;j++){
+             copia.matriz[i][j]=para.matriz[i][j];
+             if(copia.matriz[i][j]==1){
+                 punto creador;
+                 creador.x=i;
+                 creador.y=j;
+                 push(copia.actual,creador);
+             }
+         }
+     }
+     copia.move=2;
+     copia.tamx=para.tamx;
+     copia.tamy=para.tamy,
+     copia.hijas=NULL,
+     copia.padre=NULL;
+     copia.actual=NULL;
+     copia.sig=NULL;
+     return copia;
+}
+
+     
+
 int solve(maze &meow,int modalidad){
 	bool solved=false,to_do=true;
 	int **copia,contpasos=0;
@@ -456,26 +503,223 @@ int solve(maze &meow,int modalidad){
 	}
 	if(solved){
 		if(modalidad==1){
-			cout<<"solucion"<<endl;
-	        caminar(copia,solu);
-	        return 0;
+		      cout<<"solucion"<<endl;
+	              caminar(copia,solu,contpasos,modalidad);
+                      meow.matriz=copia;
+                      contpasos--;
+                      while(meow.hijas!=NULL){
+                          clear(*((*(meow.hijas)).val));
+                          pop(meow.hijas);
+                      }
+	              return contpasos;
 		}
         else{
+                caminar(copia,solu,contpasos,modalidad);
+                contpasos--;
+                while(meow.hijas!=NULL){
+                    clear(*((*(meow.hijas)).val));
+                    pop(meow.hijas);
+                }
         	return contpasos;
 		}
 	}
 	else
-	cout<<"not posible";
+	cout<<"no es posible" << endl;
+        meow.matriz=copia;
+        while(meow.hijas!=NULL){
+             clear(*((*(meow.hijas)).val));
+             pop(meow.hijas);
+        }
 	return 0;
 }
 
-jugar(maze &meow){
-	int cont=solve(meow,0);
-
+void formatopre(maze & meow){
+    cout<<"{";
+    for(int j=0;j<meow.tamy;j++){
+       cout<<"{";
+       for(int i=0;i<meow.tamx;i++){
+           if(i==meow.tamx-1)
+           cout<<meow.matriz[i][j];
+           else
+           cout<<meow.matriz[i][j]<<",";
+       }
+       cout<<"},";
+    }
+    cout<<"}" << endl;
 }
-int main(int argc, char** argv) {
+
+
+int jugar(maze &meow){
+        int **copia;
+        int i=0,j=0,posx,posy,auxx,auxy;
+        char order;
+        node<int> *llaves=NULL;
+        copia=new int * [meow.tamx];
+        for(i=0;i<meow.tamx;i++){
+            copia[i]=new int [meow.tamy];
+            for(j=0;j<meow.tamy;j++){
+                copia[i][j]=meow.matriz[i][j];
+                if(copia[i][j]==1){
+                    posx=i;
+                    posy=j;
+                }
+            }
+        }
+        auxx=posx;
+        auxy=posy;
+        int cont=solve(meow,0),movi=0;
+        copiabonita(copia,meow.tamx,meow.tamy,posx,posy);
+        while(movi<=cont){
+            cin>>order;
+            switch(order){
+                 case 'a':auxx=posx-1;auxy=posy;break;
+	         case 'd':auxx=posx+1;auxy=posy;break;
+		 case 'w':auxy=posy-1;auxx=posx;break;
+	         case 's':auxy=posy+1;auxx=posx;break;
+                 default: break;
+            }
+            if(copia[auxx][auxy]==-1 ||(abso(copia[auxx][auxy])%2==0 && copia[auxx][auxy]<-4)){
+                 cout<<"no se puede atravesar esa casilla"<<endl;
+            }
+            else{
+                 if(abso(copia[auxx][auxy])%2==1 && copia[auxx][auxy]<-4){
+                     cout<<"se ha recojido una llave"<<endl;
+                     //movi--;
+                     for(j=0;j<meow.tamy;j++){
+                         for(i=0;i<meow.tamx;i++){
+                              if(copia[i][j]==copia[auxx][auxy]-1){
+                                   copia[i][j]=0;
+                              }
+                         }
+                     }
+                     push(llaves,(abso(copia[auxx][auxy])-5)/2+1);
+                 }
+                 posx=auxx;
+                 posy=auxy;
+                 movi++;
+            }    
+            copiabonita(copia,meow.tamx,meow.tamy,posx,posy);
+            mostrar(llaves);
+            if(copia[posx][posy]==-2){
+                 cout<<"llego al final"<<endl;
+                 return 0;
+            }
+               
+        }
+        cout<<"perdio"<<endl;
+        return 1;
+}
+maze labe1(){
+   maze lab1;
+   int algo[10][10]={{0,-1,0,0,0,0,0,0,-1,0},{-1,-15,-10,0,0,0,0,-8,-17,-1},{0,-1,0,0,0,0,0,0,-1,0},{-16,0,0,-5,0,-7,0,0,0,0},{-19,-14,0,0,1,0,0,0,0,0},{-18,0,0,-9,0,-11,0,0,0,0},{0,0,0,0,0,0,0,0,-1,-1},{0,0,-12,0,0,0,0,-20,-2,-1},{0,-1,-13,-6,0,0,0,0,-1,-1},{0,0,-1,0,0,0,0,0,0,0}};
+   lab1.matriz=new int * [10];
+   for(int i=0;i<10;i++){
+       lab1.matriz[i]= new int [10];
+       for(int j=0;j<10;j++){
+           lab1.matriz[i][j]=algo[j][i];
+       }
+   }
+   
+   lab1.hijas=NULL;
+   lab1.padre=NULL;
+   lab1.move=2;
+   lab1.tamx=10;
+   lab1.tamy=10;
+   lab1.actual=NULL;
+   lab1.sig=NULL;
+   punto creador;
+   creador.x=4;
+   creador.y=4;
+   push(lab1.actual,creador);
+   return lab1;
+}
+
+maze labe2(){
+   maze lab2;
+   int algo[8][6] = {{0,-5,1,0,0,0},{0,-7,0,0,0,0},{0,0,0,0,0,0},{0,0,0,-1,0,0},{0,0,0,-1,0,0},{0,0,0,-1,0,0},{0,0,-8,0,0,0},{0,0,-6,-2,0,0}};
+   lab2.matriz=new int * [6];
+   for(int i=0;i<6;i++){
+       lab2.matriz[i]= new int [8];
+       for(int j=0;j<8;j++){
+           lab2.matriz[i][j]=algo[j][i];
+       }
+   }
+   
+   lab2.hijas=NULL;
+   lab2.padre=NULL;
+   lab2.move=2;
+   lab2.tamx=6;
+   lab2.tamy=8;
+   lab2.actual=NULL;
+   lab2.sig=NULL;
+   punto creador;
+   creador.x=2;
+   creador.y=0;
+   push(lab2.actual,creador);
+   return lab2;
+}
+
+maze labe3(){
+   maze lab2;
+   int algo[7][7] ={{1,0,-5,0,-13,0,0},{0,0,-6,0,-12,0,0},{0,0,-7,0,-11,0,0},{0,0,-8,0,-10,0,0},{0,0,-9,0,0,0,0},{0,0,0,-1,0,0,0},{0,0,-1,-2,-1,0,0}};
+   lab2.matriz=new int * [7];
+   for(int i=0;i<7;i++){
+       lab2.matriz[i]= new int [7];
+       for(int j=0;j<7;j++){
+           lab2.matriz[i][j]=algo[j][i];
+       }
+   }
+   
+   lab2.hijas=NULL;
+   lab2.padre=NULL;
+   lab2.move=2;
+   lab2.tamx=7;
+   lab2.tamy=7;
+   lab2.actual=NULL;
+   lab2.sig=NULL;
+   punto creador;
+   creador.x=0;
+   creador.y=0;
+   push(lab2.actual,creador);
+   return lab2;
+}
+
+
+maze labe4(){
+maze lab2;
+   int algo[17][17] ={{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-5},{-1,-1,-1,-1,-1,-6,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1},{0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,-21},{-16,-1,0,0,0,0,0,-1,0,0,0,-1,-1,0,0,0,0},{-1,-1,-1,-1,0,-1,-1,-1,-1,0,-1,-1,-1,0,-1,-1,-1},{-1,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0},{-11,-10,0,0,0,0,-1,0,0,0,0,0,-1,-1,-1,0,0},{-1,-1,-1,0,0,0,-1,-1,-1,-1,-14,-1,-1,0,0,0,0},{-17,0,-1,-1,0,-1,-1,0,0,0,0,0,0,0,-1,-1,-1},{0,0,-1,0,-1,-1,-1,-15,-1,0,0,0,-1,0,0,0,0},{0,0,-1,0,0,0,-1,-1,-1,0,-1,-1,-1,0,0,0,0},{0,-8,-9,-1,0,0,0,-1,0,0,0,0,-1,-1,-1,-1,-1},{0,0,-1,0,0,0,0,-1,-1,-1,-1,0,-1,0,0,0,-7},{0,0,-1,0,-1,-1,-1,-1,0,-1,-1,0,0,0,-1,-1,-1},{-1,-1,-1,0,0,0,0,-1,0,-1,-1,0,-1,-1,-1,0,-13},{0,0,-18,0,0,-1,-1,-1,0,-22,0,0,-12,0,-1,-1,0},{-19,0,-1,0,0,-1,-2,-20,0,0,0,0,-1,0,0,0,0}};
+   lab2.matriz=new int * [17];
+   for(int i=0;i<17;i++){
+       lab2.matriz[i]= new int [17];
+       for(int j=0;j<17;j++){
+     
+
+      lab2.matriz[i][j]=algo[j][i];
+       }
+   }
+   
+   lab2.hijas=NULL;
+   lab2.padre=NULL;
+   lab2.move=2;
+   lab2.tamx=17;
+   lab2.tamy=17;
+   lab2.actual=NULL;
+   lab2.sig=NULL;
+   punto creador;
+   creador.x=0;
+   creador.y=0;
+   push(lab2.actual,creador);
+   return lab2;
+}
+    
+int main() {
 	char op;
 	maze meow=armar();
-	solve(meow,1);
+        formatopre(meow);
+	maze temp = labe3();
+        bonita(temp,-1,-1);
+        //cin>>op;
+        //jugar(temp);
+        solve(temp,1);
 	return 0;
 }
